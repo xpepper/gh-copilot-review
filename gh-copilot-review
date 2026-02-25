@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-if [ $# -eq 0 ] || [[ "$1" == "--help" ]]; then
+if [[ "${1:-}" == "--help" ]]; then
   echo -e "🔍 Request a Copilot code review on a GitHub pull request"
   echo -e ""
   echo -e "\033[1mUSAGE\033[0m"
@@ -16,17 +16,18 @@ if [ $# -eq 0 ] || [[ "$1" == "--help" ]]; then
   echo -e "  - by number, e.g. \"123\";"
   echo -e "  - by URL, e.g. \"https://github.com/OWNER/REPO/pull/123\"."
   echo -e ""
+  echo -e "  If no argument is provided, the PR associated with the current branch is used."
+  echo -e ""
   echo -e "\033[1mEXAMPLES\033[0m"
   echo -e "  $ gh-copilot-review 353"
   echo -e "  $ gh-copilot-review https://github.com/OWNER/REPO/pull/353"
+  echo -e "  $ gh-copilot-review"
   echo -e ""
   echo -e "\033[1mLEARN MORE\033[0m"
   echo -e "  Use \`gh copilot-review --help\` for more information about this command."
   echo -e "  Read the manual at https://github.com/ChrisCarini/gh-copilot-review"
   exit 0
 fi
-
-input="$1"
 
 # Function to extract repo from git remote
 get_repo_from_git() {
@@ -53,35 +54,50 @@ get_repo_from_git() {
   esac
 }
 
-case "$input" in
-  ''|*[^0-9]*)
-    # Assume it's a URL
-    case "$input" in
-      *github.com/*/pull/*)
-        repo=$(printf '%s\n' "$input" | sed -E 's|.*github.com/([^/]+/[^/]+)/pull/[0-9]+.*|\1|')
-        pr_number=$(printf '%s\n' "$input" | sed -E 's|.*/pull/([0-9]+).*|\1|')
+if [ $# -eq 0 ]; then
+  # No argument provided — try to infer the PR from the current branch
+  pr_number=$(gh pr view --json number -q .number 2>/dev/null || true)
+  if [ -z "$pr_number" ]; then
+    echo "❌ Error: No PR number or URL provided, and no open PR found for the current branch."
+    echo ""
+    echo "  Run 'gh copilot-review --help' for usage information."
+    exit 1
+  fi
+  repo=$(get_repo_from_git)
+  echo "ℹ️  Auto-detected PR #${pr_number} for the current branch."
+else
+  input="$1"
 
-        if [ -z "$repo" ] || [ -z "$pr_number" ]; then
-          echo "❌ Error: Could not extract repo or PR number from URL."
+  case "$input" in
+    ''|*[^0-9]*)
+      # Assume it's a URL
+      case "$input" in
+        *github.com/*/pull/*)
+          repo=$(printf '%s\n' "$input" | sed -E 's|.*github.com/([^/]+/[^/]+)/pull/[0-9]+.*|\1|')
+          pr_number=$(printf '%s\n' "$input" | sed -E 's|.*/pull/([0-9]+).*|\1|')
+
+          if [ -z "$repo" ] || [ -z "$pr_number" ]; then
+            echo "❌ Error: Could not extract repo or PR number from URL."
+            exit 1
+          fi
+          ;;
+        *)
+          echo "❌ Error: Invalid input. Provide a GitHub PR URL or PR number."
           exit 1
-        fi
-        ;;
-      *)
-        echo "❌ Error: Invalid input. Provide a GitHub PR URL or PR number."
+          ;;
+      esac
+      ;;
+    *)
+      # All digits → PR number, get repo from git
+      pr_number="$input"
+      repo=$(get_repo_from_git)
+      if [ -z "$repo" ]; then
+        echo "❌ Error: Could not determine repo from git remote."
         exit 1
-        ;;
-    esac
-    ;;
-  *)
-    # All digits → PR number, get repo from git
-    pr_number="$input"
-    repo=$(get_repo_from_git)
-    if [ -z "$repo" ]; then
-      echo "❌ Error: Could not determine repo from git remote."
-      exit 1
-    fi
-    ;;
-esac
+      fi
+      ;;
+  esac
+fi
 
 # Make the API call
 echo "🔍 Requesting Copilot Code Review on ${repo} PR #${pr_number}..."
