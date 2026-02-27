@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-if [[ "${1:-}" == "--help" ]]; then
+print_help() {
   echo -e "🔍 Request a Copilot code review on a GitHub pull request"
   echo -e ""
   echo -e "\033[1mUSAGE\033[0m"
@@ -26,6 +26,10 @@ if [[ "${1:-}" == "--help" ]]; then
   echo -e "\033[1mLEARN MORE\033[0m"
   echo -e "  Use \`gh copilot-review --help\` for more information about this command."
   echo -e "  Read the manual at https://github.com/ChrisCarini/gh-copilot-review"
+}
+
+if [[ "${1:-}" == "--help" ]]; then
+  print_help
   exit 0
 fi
 
@@ -60,7 +64,7 @@ if [ $# -eq 0 ]; then
   if [ -z "$pr_number" ]; then
     echo "❌ Error: No PR number or URL provided, and no open PR found for the current branch."
     echo ""
-    echo "  Run 'gh copilot-review --help' for usage information."
+    print_help
     exit 1
   fi
   repo=$(get_repo_from_git)
