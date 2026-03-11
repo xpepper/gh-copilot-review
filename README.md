@@ -11,7 +11,7 @@ invoking Copilot's PR review bot, saving you time and making it easier to get AI
 ## 📦 Installation
 
 ```shell
-gh extension install ChrisCarini/gh-copilot-review
+gh extension install xpepper/gh-copilot-review
 ```
 
 _**Note:** This script requires the [GitHub CLI (`gh`)](https://cli.github.com/) to be installed and authenticated._
