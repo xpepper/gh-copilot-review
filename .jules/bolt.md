@@ -1,0 +1,3 @@
+## 2024-05-24 - Bash script subshell overhead
+**Learning:** Shell scripts spawning external programs (`sed`, `printf`, `grep`) within subshells (`$(...)`) add ~2-8ms fork/exec overhead per invocation, which adds up quickly in loops or frequent CLI calls. Native bash parameter expansion (`${var#prefix}`, `${var%suffix}`) and regex (`[[ "$var" =~ regex ]]` -> `${BASH_REMATCH}`) executes in <0.01ms.
+**Action:** When extracting substrings or replacing patterns in shell scripts, prefer native bash parameter expansion and regex over invoking external commands like `sed`, `awk`, or `grep` within subshells, especially for parsing URLs and git remotes.
