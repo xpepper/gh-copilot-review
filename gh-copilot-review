@@ -103,6 +103,12 @@ else
   esac
 fi
 
+# Security Check: Validate repository format to prevent API path traversal
+if [[ ! "$repo" =~ ^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$ ]] || [[ "$repo" == *".."* ]]; then
+  echo "❌ Error: Invalid repository format or path traversal detected: ${repo}" >&2
+  exit 1
+fi
+
 # Make the API call
 echo "🔍 Requesting Copilot Code Review on ${repo} PR #${pr_number}..."
 set +e

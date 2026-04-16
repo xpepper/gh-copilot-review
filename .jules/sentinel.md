@@ -1,0 +1,4 @@
+## 2024-04-16 - API Path Traversal Validation
+**Vulnerability:** Extracted owner/repo strings from untrusted input (git remotes or URLs) were directly interpolated into GitHub API endpoints (`/repos/${repo}/pulls/...`) without validation, allowing path traversal (e.g., `owner/../repo` or escaping the expected path structure).
+**Learning:** Even when extracting segments from seemingly structured input (like URLs or git configs), the parsed values must be strictly validated before being used in sensitive operations like API requests or file system operations.
+**Prevention:** Always validate extracted resource identifiers (like GitHub repository identifiers) against a strict whitelist regular expression (e.g., `^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$`) and explicitly check for path traversal sequences like `..` before utilizing them.
