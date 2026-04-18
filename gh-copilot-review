@@ -77,8 +77,13 @@ else
       # Assume it's a URL
       case "$input" in
         *github.com/*/pull/*)
-          repo=$(printf '%s\n' "$input" | sed -E 's|.*github.com/([^/]+/[^/]+)/pull/[0-9]+.*|\1|')
-          pr_number=$(printf '%s\n' "$input" | sed -E 's|.*/pull/([0-9]+).*|\1|')
+          if [[ "$input" =~ github\.com/([^/]+/[^/]+)/pull/([0-9]+) ]]; then
+            repo="${BASH_REMATCH[1]}"
+            pr_number="${BASH_REMATCH[2]}"
+          else
+            repo=""
+            pr_number=""
+          fi
 
           if [ -z "$repo" ] || [ -z "$pr_number" ]; then
             echo "❌ Error: Could not extract repo or PR number from URL."
@@ -101,6 +106,12 @@ else
       fi
       ;;
   esac
+fi
+
+# Validate repo to prevent path traversal
+if [[ ! "$repo" =~ ^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$ ]] || [[ "$repo" == *".."* ]]; then
+  echo "❌ Error: Invalid repository identifier. Path traversal detected." >&2
+  exit 1
 fi
 
 # Make the API call
