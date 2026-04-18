@@ -41,15 +41,19 @@ get_repo_from_git() {
     exit 1
   fi
 
+  local repo
   case "$git_url" in
     git@github.com:*)
-      echo "$git_url" | sed -e 's|git@github.com:||' -e 's|\.git$||'
+      repo="${git_url#git@github.com:}"
+      echo "${repo%.git}"
       ;;
     https://github.com/*)
-      echo "$git_url" | sed -e 's|https://github.com/||' -e 's|\.git$||'
+      repo="${git_url#https://github.com/}"
+      echo "${repo%.git}"
       ;;
     ssh://*@github.com/*)
-      echo "$git_url" | sed -e 's|.*@github.com/||' -e 's|\.git$||'
+      repo="${git_url#*@github.com/}"
+      echo "${repo%.git}"
       ;;
     *)
       echo "❌ Error: Unsupported git remote format: $git_url" >&2
@@ -77,10 +81,10 @@ else
       # Assume it's a URL
       case "$input" in
         *github.com/*/pull/*)
-          repo=$(printf '%s\n' "$input" | sed -E 's|.*github.com/([^/]+/[^/]+)/pull/[0-9]+.*|\1|')
-          pr_number=$(printf '%s\n' "$input" | sed -E 's|.*/pull/([0-9]+).*|\1|')
-
-          if [ -z "$repo" ] || [ -z "$pr_number" ]; then
+          if [[ "$input" =~ github\.com/([^/]+/[^/]+)/pull/([0-9]+) ]]; then
+            repo="${BASH_REMATCH[1]}"
+            pr_number="${BASH_REMATCH[2]}"
+          else
             echo "❌ Error: Could not extract repo or PR number from URL."
             exit 1
           fi

@@ -1,0 +1,3 @@
+## 2024-05-18 - Bash Built-ins over External Processes
+**Learning:** In Bash scripts, spawning external processes like `sed` or using subshells (`$()`) inside frequently executed functions or parsing logic incurs significant overhead due to process forking. Replacing them with Bash built-in parameter expansion (e.g., `${var#prefix}`, `${var%suffix}`) and built-in regular expression matching (`[[ $var =~ regex ]]`) yields a massive performance improvement (up to ~100x faster for simple string manipulations).
+**Action:** Prioritize Bash built-in string manipulation and regex over external tools like `sed`, `grep`, or `awk` for simple parsing and formatting tasks to maximize script execution speed.
