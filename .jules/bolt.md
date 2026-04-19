@@ -1,0 +1,3 @@
+## 2024-05-18 - Optimize string processing with Bash built-ins
+**Learning:** In bash-heavy CLI tools, spawning external processes like `sed`, `grep`, or `awk` inside loops or for simple string manipulation creates significant performance overhead due to process creation time.
+**Action:** Always prefer Bash built-ins for string manipulation. Use parameter expansions (`${var#prefix}`, `${var%suffix}`) for substring removal and the `=~` operator with `${BASH_REMATCH}` array for regular expression extraction. This eliminates subshell invocation and reduces execution time.
