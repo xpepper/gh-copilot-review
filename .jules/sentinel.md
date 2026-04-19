@@ -1,0 +1,4 @@
+## 2025-05-15 - Validate Repo and PR input against Path Traversal in GitHub CLI wrappers
+**Vulnerability:** Unsanitized user inputs (`repo`, `pr_number`) were interpolated into an API path (`gh api "/repos/${repo}/pulls/${pr_number}/requested_reviewers"`). If `repo` was extracted from a malicious input string with `..`, it could trigger path traversal against GitHub's API.
+**Learning:** GitHub repository identifiers (owner/repo) extracted from URLs must be strictly validated against a whitelist regex (`^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$`) and explicitly checked for path traversal components (`..`) before using them in API endpoint paths.
+**Prevention:** Implement validation checks early in Bash scripts for arguments extracted from user-controlled URLs before they are passed to sensitive contexts like API calls or commands.
